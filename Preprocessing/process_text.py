@@ -31,4 +31,4 @@ def process(summary):
             wn_pos = get_wordnet_pos(tag)
             lemma = wnl.lemmatize(word,pos=wn_pos) if wn_pos is not None else wnl.lemmatize(word)
             results.append(lemma)
-    return results
+    return list(set(results))
