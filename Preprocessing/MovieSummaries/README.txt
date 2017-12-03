@@ -10,7 +10,7 @@ All data is released under a Creative Commons Attribution-ShareAlike License. Fo
 #
 ###
 
-1. plot_summaries.txt.gz [29 M] 
+1. plot_summaries.txt.gz [29 M]
 
 Plot summaries of 42,306 movies extracted from the November 2, 2012 dump of English-language Wikipedia.  Each line contains the Wikipedia movie ID (which indexes into movie.metadata.tsv) followed by the summary.
 
@@ -76,4 +76,3 @@ name.clusters.txt
 
 
 970 unique character names used in at least two different movies, along with 2,666 instances of those types.  The ID field indexes into the Freebase character/actor map ID in character.metadata.tsv.
-

@@ -2,7 +2,7 @@
 
 import pandas as pd # pip3 intsall pandas
 import progressbar # pip3 install progressbar2
-from process_text import process_text
+from process_text import process
 
 # USER DEFINED
 num_output_classes = 5
@@ -32,7 +32,9 @@ for index, row in plot_summaries_and_revenue.iterrows():
         bar.update(progress)
         progress += 1
 
-    row['Plot Lemmatized'] = process_text(row['Plot Summary'])
+    plot_summaries_and_revenue.at[index, 'Plot Lemmatized'] = process(row['Plot Summary'])
 
-# Write to file
+# Write to file the class and lemmatized plot
+plot_summaries_and_revenue.drop('Plot Summary', axis=1, inplace=True)
+plot_summaries_and_revenue.drop('Movie box office revenue', axis=1, inplace=True)
 plot_summaries_and_revenue.to_pickle('preproc.pkl')
