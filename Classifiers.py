@@ -22,19 +22,19 @@ class Classifier:
         elif method == "DecisionTrees":
             self.clf = DecisionTreeClassifier(max_depth=10)
         elif method == "GaussianProcess":
-            self.clf = GaussianProcessClassifier(1.0 * RBF(1.0))
+            self.clf = GaussianProcessClassifier(1.0 * RBF(1.0), num_jobs=-1)
         elif method == "LogisticRegression":
-            self.clf = LogisticRegression()
+            self.clf = LogisticRegression(num_jobs=-1)
         elif method == "LinearSVM":
             self.clf = SVC(kernel="linear", C=0.025)
         elif method == "NaiveBayes":
             self.clf = GaussianNB()
         elif method == "NearestNeighbors":
-            self.clf = KNeighborsClassifier(3)
+            self.clf = KNeighborsClassifier(3, num_jobs=-1)
         elif method == "NeuralNetwork":
             self.clf = MLPClassifier(alpha=1)
         elif method == "RandomForest":
-            self.clf = RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)
+            self.clf = RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1, n_jobs=-1)
         elif method == "RBFSVM":
             self.clf = SVC(gamma=2, C=1)
         elif method == "QDA":
@@ -45,7 +45,7 @@ class Classifier:
         self.method = method
 
     def cross_validate(self, features, labels, num_folds=5):
-        scores = cross_val_score(self.clf, features, labels, cv=StratifiedKFold(num_folds, shuffle=True)) #scoring='custom_eval_method'
+        scores = cross_val_score(self.clf, features, labels, n_jobs=-1, cv=StratifiedKFold(num_folds, shuffle=True)) #scoring='custom_eval_method'
         return ("%0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
     def train(self, features, labels):
