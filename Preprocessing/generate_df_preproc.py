@@ -5,7 +5,7 @@ from pickle import dump
 import progressbar # pip3 install progressbar2
 from process_text import process
 from collections import defaultdict
-import sys
+
 # USER DEFINED
 num_output_classes = 5
 bar = progressbar.ProgressBar(max_value=100, widgets=[progressbar.Percentage(), progressbar.Bar(), ' [', progressbar.Timer(), '] ', ' (', progressbar.ETA(), ') ',
@@ -22,7 +22,7 @@ joined = plot_summaries.join(movie_metadata)
 plot_summaries_and_revenue = joined[['Plot Summary','Movie box office revenue']].dropna()
 
 # Determine the revenue class ranges and assign the class to each object
-revenue_class, bins = pd.qcut(plot_summaries_and_revenue['Movie box office revenue'],num_output_classes, labels=[1,2,3,4,5], retbins=True)
+revenue_class, bins = pd.qcut(plot_summaries_and_revenue['Movie box office revenue'],num_output_classes, labels=list(range(1, num_output_classes+1)), retbins=True)
 
 # Assign class to each movie
 plot_summaries_and_revenue['Class'] = revenue_class
@@ -32,7 +32,7 @@ bin_file = open('bins.txt', 'w')
 for b in bins:
     bin_file.write(str(int(b)) + '\n')
 bin_file.close()
-sys.exit(0)
+
 # Create empty list for lemmatized plot in each summary object
 plot_summaries_and_revenue['Plot Lemmatized'] = pd.np.empty((len(plot_summaries_and_revenue), 0)).tolist()
 
@@ -76,8 +76,6 @@ for index, row in plot_summaries_and_revenue.iterrows():
     for w in row['Plot Lemmatized']:
         feature_vector[w] = 1
     plot_summaries_and_revenue.at[index, 'Feature Vector'] = [feature_vector[key] for key in sorted([*feature_vector])]
-    # for key, value in sorted(feature_vector.items()):
-    #    plot_summaries_and_revenue.at[index, 'Feature Vector'].append(value)
 
 # Write to file the class and feature vector
 plot_summaries_and_revenue.drop('Plot Summary', axis=1, inplace=True)
