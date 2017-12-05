@@ -1,0 +1,5 @@
+models/*
+Preprocessing/*
+!Preprocessing/process_text.py
+!Preprocessing/MovieSummaries/
+!Preprocessing/generage_df_preproc.py
