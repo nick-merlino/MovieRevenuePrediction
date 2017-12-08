@@ -1,17 +1,17 @@
 # Python 3
 import pandas
 from Classifiers import Classifier
+from pickle import load
 
-classifiers = ["AdaBoost", "DecisionTrees", "GaussianProcess", "LogisticRegression", "LinearSVM", "NaiveBayes", "NearestNeighbors", "NeuralNetwork", "RandomForest", "RBFSVM", "QDA"]
-df = pandas.read_pickle('Preprocessing/preproc.pkl')
-features = df['Feature Vector'].tolist()
-labels = [str(lbl) for lbl in df['Class'].tolist()]
+tfidf = load(open("Preprocessing/preproc.pkl", "rb"))
+revenue_classes = load(open("Preprocessing/revenue_classes.pkl", "rb"))
 
+classifiers = ["DecisionTrees"]#'"AdaBoost", "DecisionTrees", "GaussianProcess", "LogisticRegression", "LinearSVM", "NaiveBayes", "NearestNeighbors", "NeuralNetwork", "RandomForest", "RBFSVM", "QDA"]
 for classifier in classifiers:
     print("Evaluating using " + classifier)
     try:
         clf = Classifier(classifier)
-        accuracy = clf.cross_validate(features, labels)
+        accuracy = clf.cross_validate(tfidf, revenue_classes)
         print(classifier + " : " + accuracy)
-    except:
-        print(classifier + " : error")
+    except Exception as e:
+        print(classifier + " : " + "error")#str(e))
