@@ -26,9 +26,8 @@ def get_wordnet_pos(treebank_tag):
 def process(summary):
     results = []
     for word,tag in pos_tag(word_tokenize(summary)):
-        word = word.lower()
         if word not in stop_list and word.isalpha(): # Needs to be in this order for conjuctions such as "woudln't"
             wn_pos = get_wordnet_pos(tag)
             lemma = wnl.lemmatize(word,pos=wn_pos) if wn_pos is not None else wnl.lemmatize(word)
             results.append(lemma)
-    return list(set(results))
+    return list(results)

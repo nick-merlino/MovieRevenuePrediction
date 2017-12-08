@@ -15,6 +15,7 @@ from pickle import dump, load
 from pathlib import Path
 import numpy as np
 
+# Make sure to include Ridge classifier, SVM as they were in our doc
 class Classifier:
     def __init__(self,method):
         if method == "AdaBoost":
