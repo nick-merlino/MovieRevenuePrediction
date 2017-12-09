@@ -1,19 +1,22 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import cross_val_score
 import pandas as pd
 from nltk import FreqDist
+from sklearn.model_selection import KFold
+from sklearn.feature_extraction.text import TfidfTransformer
 
 
-full_df = pd.read_pickle('Preprocessing/ben-preproc.pkl').iloc[0:5100]
-df = full_df.iloc[0:5000]
-pdf = full_df.iloc[5000:5100]
+df = pd.read_pickle('Preprocessing/ben-preproc.pkl')
+
 count_vectorizer = CountVectorizer()
-documents = [" ".join(lemmas) for lemmas in full_df['Plot Lemmatized']]
+documents = [" ".join(lemmas) for lemmas in df['Plot Lemmatized']]
 count_tf = count_vectorizer.fit(documents)
 counts = count_vectorizer.transform(documents)
 
-print(count_vectorizer.get_feature_names())
+tfidf = TfidfTransformer()
+tfidf_transformed = tfidf.fit_transform(counts)
 
 bin_map = {}
 for ix, c in enumerate(sorted(df['Class'].unique())):
@@ -29,21 +32,15 @@ train_y = []
 for x in df['Class']:
     train_y.append(bin_map[x])
 
-clf = MultinomialNB()
+print('Training MNB Classifier...')
+clf1 = MultinomialNB()
 targets = df['Class']
-clf.fit(counts[:5000], train_y)
+clf1.fit(tfidf_transformed, train_y)
 
-#print(df['Plot Lemmatized'].iloc[50])
-#pred_vectorizer = CountVectorizer()
-#pred_counts = count_vectorizer.fit_transform([" ".join(df['Plot Lemmatized'].iloc[50])])
-#print("Predicted:", , "Actual:", )
+clf2 = MultinomialNB()
+clf2.fit(tfidf_transformed, train_y)
+print('Trained MNB Classifier')
 
-predicted = clf.predict(counts[5000:5100])
-total = 0
-for ix,y in enumerate(predicted):
-    if y == bin_map[full_df['Class'].iloc[5000+ix]]:
-        total+= 1
-        #print(bin_map[full_df['Class'].iloc[1000+ix]])
 
-print(total/100)
-print(predicted)
+print("Estimated out of Sample Error", cross_val_score(clf1, counts, train_y, n_jobs=-1, cv=KFold(5, shuffle=True)))
+print("Estimated out of Sample Error", cross_val_score(clf2, counts, train_y, n_jobs=-1, cv=KFold(5, shuffle=True)))

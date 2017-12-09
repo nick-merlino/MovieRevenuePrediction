@@ -65,11 +65,11 @@ class NBClf:
             for word in test_lemmas:
                 if word in self.vocab:
                     total[c] += self.log_likelihood[(word,c)]
-        #return max(total, key=total.get)
+        # return max(total, key=total.get)
         return max(total.items(), key=operator.itemgetter(1))[0]
 
 
 df = pd.read_pickle('../Preprocessed/preproc.pkl')
 clf = NBClf(df.iloc[2199:2200])
 clf.train()
-print("Predicted:",clf.predict(df['Plot Summary'].iloc[100]),"Actual:",df['Class'].iloc[100])
+print("Predicted:", clf.predict(df['Plot Summary'].iloc[100]), "Actual:", df['Class'].iloc[100])
