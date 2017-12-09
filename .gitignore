@@ -3,3 +3,4 @@ Preprocessing/*
 !Preprocessing/process_text.py
 !Preprocessing/MovieSummaries/
 !Preprocessing/generage_df_preproc.py
+!Preprocessing/cpi_data.csv
