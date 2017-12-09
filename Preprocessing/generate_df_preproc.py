@@ -11,7 +11,7 @@ from scipy.sparse import hstack
 
 # USER DEFINED
 num_output_classes = 3
-len_n_grams = 1
+len_n_grams = 5
 
 # Show progress
 bar = progressbar.ProgressBar(value=0, max_value=5, widgets=[progressbar.Percentage(), progressbar.Bar(), ' [', progressbar.Timer(), ']'])
@@ -50,7 +50,7 @@ train_counts_summary = count_vect_summary.fit_transform(summaries)
 bar.update(2)
 
 # Vectorize each summary overview
-count_vect_keywords = CountVectorizer(strip_accents='unicode', decode_error='ignore', analyzer='word', tokenizer=extract_key_phrases)
+count_vect_keywords = CountVectorizer(strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
 train_counts_keywords = count_vect_keywords.fit_transform(summaries)
 
 bar.update(3)
