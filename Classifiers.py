@@ -15,65 +15,74 @@ from pathlib import Path
 import numpy as np
 
 class Classifier:
-    def __init__(self,method):
+    def __init__(self,method, train_labels, train_freq, train_binary, test_freq=None, test_binary=None):
+        self.method = method
+        self.train_vec = train_freq
+        self.test_vec = test_freq
+        self.train_labels = train_labels
         if method == "AdaBoost":
             self.clf = AdaBoostClassifier()
         elif method == "DecisionTrees5":
             self.clf = DecisionTreeClassifier(criterion="entropy", max_depth=5)
+            self.train_vec = train_binary
+            self.test_vec = test_binary
         elif method == "DecisionTrees10":
             self.clf = DecisionTreeClassifier(criterion="entropy", max_depth=10)
+            self.train_vec = train_binary
+            self.test_vec = test_binary
         elif method == "DecisionTrees20":
             self.clf = DecisionTreeClassifier(criterion="entropy", max_depth=20)
-        elif method == "GaussianProcessClassifier":
-            self.clf = GaussianProcessClassifier(n_jobs=-1)
-        elif method == "LogisticRegression":
-            self.clf = LogisticRegression(n_jobs=-1)
+            self.train_vec = train_binary
+            self.test_vec = test_binary
+        elif method == "LogisticRegressionSagaL1":
+            self.clf = LogisticRegression(solver="saga", penalty='l1', multi_class='multinomial', n_jobs=-1)
+        elif method == "LogisticRegressionSagaL2":
+            self.clf = LogisticRegression(solver="saga", penalty='l2', multi_class='multinomial', n_jobs=-1)
         elif method == "LinearSVC":
             self.clf = LinearSVC()
-        elif method == "GaussianNaiveBayes":
-            self.clf = GaussianNB()
-        elif method == "MultinomialNaiveBayes":
-            self.clf = MultinomialNaiveBayes()
-        elif method == "BernoulliNaiveBayes":
-            self.clf = BernoulliNB()
-        elif method == "KNeighborsClassifier":
-            self.clf = KNeighborsClassifier(n_jobs=-1)
-        elif method == "NeuralNetwork":
-            self.clf = MLPClassifier()
-        elif method == "NearestCentroid":
-            self.clf = NearestCentroid()
-        elif method == "RandomForestClassifier":
-            self.clf = RandomForestClassifier(n_jobs=-1)
-        elif method == "RBFSVC":
-            self.clf = SVC()
+        elif method == "MultinomialNaiveBayes0.1":
+            self.clf = MultinomialNB(alpha=0.1)
+        elif method == "MultinomialNaiveBayes1":
+            self.clf = MultinomialNB()
+        elif method == "MultinomialNaiveBayes5":
+            self.clf = MultinomialNB(alpha=5)
+        elif method == "RandomForestClassifier5":
+            self.clf = RandomForestClassifier(criterion="entropy", max_depth=5, n_jobs=-1)
+            self.train_vec = train_binary
+            self.test_vec = test_binary
+        elif method == "RandomForestClassifier10":
+            self.clf = RandomForestClassifier(criterion="entropy", max_depth=10, n_jobs=-1)
+            self.train_vec = train_binary
+            self.test_vec = test_binary
+        elif method == "RandomForestClassifier20":
+            self.clf = RandomForestClassifier(criterion="entropy", max_depth=20, n_jobs=-1)
+            self.train_vec = train_binary
+            self.test_vec = test_binary
         elif method == "SGDClassifier":
-            self.clf = SGDClassifier(n_jobs=-1)
+            self.clf = SGDClassifier(n_jobs=-1, max_iter=1000, tol=1e-3)
         elif method == "Perceptron":
-            self.clf = Perceptron(n_jobs=-1)
-        elif method == "QuadraticDiscriminantAnalysis":
-            self.clf = QuadraticDiscriminantAnalysis()
+            self.clf = Perceptron(n_jobs=-1, max_iter=1000, tol=1e-3)
         elif method == "PassiveAggressiveClassifier":
-            self.clf = PassiveAggressiveClassifier(n_jobs=-1)
+            self.clf = PassiveAggressiveClassifier(n_jobs=-1, max_iter=1000, tol=1e-3)
         elif method == "RidgeClassifier":
             self.clf = RidgeClassifier()
         else:
             self.clf = None
             print("Uh oh - classifer name unknown")
-        self.method = method
 
-    def cross_validate(self, features, labels, num_folds=5):
-        scores = cross_val_score(self.clf, features, labels, n_jobs=-1, cv=StratifiedKFold(num_folds, shuffle=True))
+    def cross_validate(self):
+        scores = cross_val_score(self.clf, self.train_vec, self.train_labels, n_jobs=-1, cv=StratifiedKFold(5, shuffle=True))
         return ("%0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-    def train(self, features, labels):
+    def train(self):
         if Path('models/' + self.method + ".pkl").is_file():
             print(self.method + ": loading pre-trained model")
             self.clf = load(open('models/' + self.method + ".pkl", "rb"))
         else:
             print(self.method + ": training new model")
-            self.clf.fit(features, labels)
+            self.clf.fit(self.train_vec, self.train_labels)
             dump(self.clf, open('models/' + self.method + ".pkl", "wb"))
 
-    def predict_class(self, features, labels, vec):
-        self.train(features, labels)
-        return int(np.asscalar(self.clf.predict(vec)))
+    def predict_class(self):
+        self.train()
+        return int(self.clf.predict(self.test_vec)[0])

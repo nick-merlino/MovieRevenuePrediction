@@ -2,19 +2,32 @@
 import pandas
 from Classifiers import Classifier
 from pickle import load
-import sys
 from datetime import datetime
+from scipy.sparse import hstack
+import warnings
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
 
 print("Reading in data")
-vec = load(open("Preprocessing/preproc.pkl", "rb"))
-revenue_classes = load(open("Preprocessing/revenue_classes.pkl", "rb"))
-# TODO: Need dense matrix... GaussianProcessClassifier, LogisticRegression, GaussianNaiveBayes, NeuralNetwork, RBFSVC, QuadraticDiscriminantAnalysis
-classifiers = ["AdaBoost", "DecisionTrees5", "DecisionTrees10", "DecisionTrees20", "RidgeClassifier", "LinearSVC", "SGDClassifier", "Perceptron", "PassiveAggressiveClassifier", "BernoulliNB", "MultinomialNB", "KNeighborsClassifier", "NearestCentroid", "RandomForestClassifier"]
+vec_freq = load(open("Preprocessing/preproc-freq.pkl", "rb"))
+vec_binary = load(open("Preprocessing/preproc-binary.pkl", "rb"))
+vec_keywords = load(open("Preprocessing/preproc-keywords.pkl", "rb"))
+train_vec_freq = hstack([vec_freq, vec_keywords])
+train_vec_binary = hstack([vec_binary, vec_keywords])
+train_labels = load(open("Preprocessing/train_labels.pkl", "rb"))
+
+del vec_freq
+del vec_binary
+del vec_keywords
+
+classifiers = ["DecisionTrees5", "DecisionTrees10", "DecisionTrees20", "RandomForestClassifier5", "RandomForestClassifier10", "RandomForestClassifier20", "MultinomialNaiveBayes1", "MultinomialNaiveBayes0.1", "MultinomialNaiveBayes5", "LogisticRegressionSagaL1", "LogisticRegressionSagaL2", "AdaBoost", "RidgeClassifier", "LinearSVC", "SGDClassifier", "Perceptron", "PassiveAggressiveClassifier"]
+clf = None
 for classifier in classifiers:
     print("Evaluating using " + classifier + " at " + str(datetime.now()))
     try:
-        clf = Classifier(classifier)
-        accuracy = clf.cross_validate(vec, revenue_classes)
+        clf = Classifier(classifier, train_labels, train_vec_freq, train_vec_binary)
+        accuracy = clf.cross_validate()
         print(classifier + " : " + accuracy)
     except Exception as e:
-        print(classifier + " : error")# + str(e))
+        print(classifier + " : " + str(e))

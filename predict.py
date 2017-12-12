@@ -5,35 +5,59 @@ from pickle import load
 from Preprocessing.process_text import process, extract_key_phrases
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack
+from numpy import mean
+import locale
+
+len_n_grams = 5
+locale.setlocale( locale.LC_ALL, '' )
 
 parser = argparse.ArgumentParser(description='Predict the revenue of a plot summary.')
 parser.add_argument('summary_file', help='Path to the file containing the summary')
-parser.add_argument('-c', help='DecisionTrees / LinearRegression / NaiveBayes / NeuralNetwork / SVM / RandomForest')
+parser.add_argument('-c', help='Specify classifier')
 args = parser.parse_args()
 
-classifiers = [args.c] if args.c else ["AdaBoost", "DecisionTrees", "GaussianProcess", "LogisticRegression", "LinearSVM", "NaiveBayes", "NearestNeighbors", "NeuralNetwork", "RandomForest", "RBFSVM", "QDA"]
+classifiers = [args.c] if args.c else ["DecisionTrees5", "DecisionTrees10", "DecisionTrees20", "RandomForestClassifier5", "RandomForestClassifier10", "RandomForestClassifier20", "MultinomialNaiveBayes1", "MultinomialNaiveBayes0.1", "MultinomialNaiveBayes5", "LogisticRegressionSagaL1", "LogisticRegressionSagaL2", "AdaBoost", "RidgeClassifier", "LinearSVC", "SGDClassifier", "Perceptron", "PassiveAggressiveClassifier"]
+summary = [' '.join(process(open(args.summary_file, 'r').read()))]
+del parser
+del args
 
-summary = process(open(args.summary_file, 'r').read())
+vec_freq = load(open("Preprocessing/preproc-freq.pkl", "rb"))
+vec_binary = load(open("Preprocessing/preproc-binary.pkl", "rb"))
+vec_keywords = load(open("Preprocessing/preproc-keywords.pkl", "rb"))
+train_vec_freq = hstack([vec_freq, vec_keywords])
+train_vec_binary = hstack([vec_binary, vec_keywords])
+train_labels = load(open("Preprocessing/train_labels.pkl", "rb"))
+vocab_summary = load(open("Preprocessing/vocab-summary.pkl", "rb"))
+vocab_keywords = load(open("Preprocessing/vocab-keywords.pkl", "rb"))
 
-dense_vector = load(open("Preprocessing/preproc.pkl", "rb"))
-revenue_classes = load(open("Preprocessing/revenue_classes.pkl", "rb"))
-summary_vocab = load(open("Preprocessing/summary_vocab.pkl", "rb"))
-keyword_vocab = load(open("Preprocessing/keyword_vocab.pkl", "rb"))
+print("Calculating and vectorizing keywords")
+vectorizer = TfidfVectorizer(vocabulary=vocab_keywords, strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
+vec_keywords = vectorizer.fit_transform(summary)
+print("Vectorizing the summary (binary)")
+vectorizer = TfidfVectorizer(vocabulary=vocab_summary, ngram_range=(1, len_n_grams), binary=True, strip_accents='unicode', decode_error='ignore', analyzer='word', tokenizer=process)
+vec_binary = vectorizer.fit_transform(summary)
+print("Vectorizing the summary (frequency)")
+vectorizer = TfidfVectorizer(vocabulary=vocab_summary, ngram_range=(1, len_n_grams), strip_accents='unicode', decode_error='ignore', analyzer='word', tokenizer=process)
+vec_freq = vectorizer.fit_transform(summary)
+test_vec_freq = hstack([vec_freq, vec_keywords])
+test_vec_binary = hstack([vec_binary, vec_keywords])
 
-vec_summary = TfidfVectorizer(vocabulary=summary_vocab, ngram_range=(1, len_n_grams), strip_accents='unicode', decode_error='ignore', analyzer='word', tokenizer=process)
-vec_summary_fit_transformed = vec_summary.fit_transform(summary)
-vec_keywords = TfidfVectorizer(vocabulary=keyword_vocab, strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
-vec_keywords_fit_transformed = vec_keywords.fit_transform(summary)
-vec_combined = hstack([vec_summary_fit_transformed, vec_keywords_fit_transformed])
+del vectorizer
+del vec_freq
+del vec_binary
+del vec_keywords
 
-bin_dict = load(open('Preprocessing/bin_dict.pkl", "rb"))
+train_classes_dict = load(open("Preprocessing/train_classes_dict.pkl", "rb"))
+predictions = []
 for classifier in classifiers:
     print("Calculating " + classifier)
     try:
-        clf = Classifier(classifier)
-        class_num = clf.predict_class(dense_vector, revenue_classes, vec_combined)
-        print(classifier + ": class " + str(class_num) + "($" + str(bin_dict[class_num-1]) + "-$" + str(bin_dict[class_num]) + ")")
-    except:
-        print(classifier + " : error")
+        clf = Classifier(classifier, train_labels, train_vec_freq, train_vec_binary, test_vec_freq, test_vec_binary)
+        pred = clf.predict_class()
+        print(classifier + ": class " + str(pred) + ' (' + locale.currency(train_classes_dict[pred], grouping=True) + ' - ' + locale.currency(train_classes_dict[pred+1], grouping=True) + ')')
+        predictions.append(pred)
+    except Exception as e:
+        print(classifier + ": " + str(e))
 
-bin_file.close()
+pred = int(round(mean(predictions)))
+print("Average Prediction: class " + str(pred) + ' (' + locale.currency(train_classes_dict[pred], grouping=True) + ' - ' + locale.currency(train_classes_dict[pred+1], grouping=True) + ')')

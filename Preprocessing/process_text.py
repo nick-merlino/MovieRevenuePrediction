@@ -6,6 +6,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords, wordnet
 from textrank import filter_for_tags, normalize, unique_everseen, build_graph # pip3 install git+git://github.com/davidadamojr/TextRank.git
 from networkx import pagerank
+from re import search
 
 # Define stopword list
 stop_list = stopwords.words('english')
@@ -28,7 +29,7 @@ def get_wordnet_pos(treebank_tag):
 def process(summary):
     results = []
     for word,tag in pos_tag(word_tokenize(summary)):
-        if word not in stop_list and word.isalpha(): # Needs to be in this order for conjuctions such as "woudln't"
+        if word not in stop_list and re.search('[a-zA-Z]', word):
             wn_pos = get_wordnet_pos(tag)
             lemma = wnl.lemmatize(word,pos=wn_pos) if wn_pos is not None else wnl.lemmatize(word)
             results.append(lemma)
@@ -85,18 +86,18 @@ def extract_key_phrases(text):
         second = textlist[j]
         if first in keyphrases and second in keyphrases:
             keyphrase = textlist_lem[i] + ' ' + textlist_lem[j]
-            modified_key_phrases.add(keyphrase)
+            modified_key_phrases.add('P_' + keyphrase)
             dealt_with.add(first)
             dealt_with.add(second)
         else:
             if first in keyphrases and first not in dealt_with:
-                modified_key_phrases.add(textlist_lem[i])
+                modified_key_phrases.add('P_' + textlist_lem[i])
 
             # if this is the last word in the text, and it is a keyword, it
             # definitely has no chance of being a keyphrase at this point
             if j == len(textlist) - 1 and second in keyphrases and \
                     second not in dealt_with:
-                modified_key_phrases.add(textlist_lem[j])
+                modified_key_phrases.add('P_' + textlist_lem[j])
 
         i = i + 1
         j = j + 1
