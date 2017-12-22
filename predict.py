@@ -3,7 +3,7 @@ from Classifiers import Classifier
 import argparse
 from pickle import load
 from Preprocessing.process_text import process, extract_key_phrases
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from scipy.sparse import hstack
 from numpy import mean
 
@@ -30,7 +30,7 @@ vocab_keywords = load(open("Preprocessing/vocab-keywords.pkl", "rb"))
 
 if args.v:
     print("Calculating and vectorizing keywords")
-vectorizer = TfidfVectorizer(vocabulary=vocab_keywords, strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
+vectorizer = CountVectorizer(vocabulary=vocab_keywords, strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
 vec_keywords = vectorizer.fit_transform(summary)
 if args.v:
     print("Vectorizing the summary (binary)")

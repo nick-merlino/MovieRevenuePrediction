@@ -3,7 +3,7 @@
 import pandas as pd # pip3 intsall pandas
 from pickle import dump
 from process_text import process, extract_key_phrases
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 import json
 import locale
 import sys
@@ -74,7 +74,7 @@ del train_labels
 del train_classes
 
 print("Calculating and vectorizing keywords")
-vectorizer = TfidfVectorizer(strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
+vectorizer = CountVectorizer(strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
 vec = vectorizer.fit_transform(summaries)
 dump(vec, open('preproc-keywords.pkl', "wb"))
 dump(vectorizer.get_feature_names(), open('vocab-keywords.pkl', "wb"))
