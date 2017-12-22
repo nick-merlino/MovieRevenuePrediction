@@ -8,10 +8,8 @@ from textrank import filter_for_tags, normalize, unique_everseen, build_graph # 
 from networkx import pagerank
 from re import search
 
-# Define stopword list
-stop_list = stopwords.words('english')
-# Define lematizing method as wornet lemmatizer in order to use part of speech
 wnl = WordNetLemmatizer()
+stop_list = set(w.lower() for w in stopwords.words('english'))
 
 # Convert nltk POS tag to basic ones necessary for wordnet lammatizer
 def get_wordnet_pos(treebank_tag):
@@ -29,7 +27,7 @@ def get_wordnet_pos(treebank_tag):
 def process(summary):
     results = []
     for word,tag in pos_tag(word_tokenize(summary)):
-        if word not in stop_list and re.search('[a-zA-Z]', word):
+        if word.lower() not in stop_list and search("^[a-zA-Z]", word) and word != 'n\'t':
             wn_pos = get_wordnet_pos(tag)
             lemma = wnl.lemmatize(word,pos=wn_pos) if wn_pos is not None else wnl.lemmatize(word)
             results.append(lemma)
@@ -64,12 +62,12 @@ def extract_key_phrases(text):
     calculated_page_rank = pagerank(graph, weight='weight')
 
     # most important words in ascending order of importance
-    keyphrases = sorted(calculated_page_rank, key=calculated_page_rank.get,
-                        reverse=True)
+    keyphrases = [w for w in sorted(calculated_page_rank, key=calculated_page_rank.get,
+                        reverse=True) if w.lower() not in stop_list]
 
     # the number of keyphrases returned will be relative to the size of the
     # text (a third of the number of vertices)
-    one_third = len(word_set_list) // 3
+    one_third = len(keyphrases) // 3
     keyphrases = keyphrases[0:one_third + 1]
 
     # take keyphrases with multiple words into consideration as done in the

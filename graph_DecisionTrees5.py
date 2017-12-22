@@ -2,7 +2,7 @@ import graphviz
 from pickle import load
 from sklearn import tree
 
-clf = load(open("models/DecisionTrees5.pkl", "rb"))
+clf = load(open("models/DecisionTrees10.pkl", "rb"))
 vocab = load(open("Preprocessing/vocab-summary.pkl", "rb"))
 vocab_keywords = load(open("Preprocessing/vocab-keywords.pkl", "rb"))
 vocab.extend(vocab_keywords)

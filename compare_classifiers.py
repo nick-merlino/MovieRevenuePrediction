@@ -4,10 +4,6 @@ from Classifiers import Classifier
 from pickle import load
 from datetime import datetime
 from scipy.sparse import hstack
-import warnings
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
 
 print("Reading in data")
 vec_freq = load(open("Preprocessing/preproc-freq.pkl", "rb"))

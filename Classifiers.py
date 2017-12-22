@@ -9,7 +9,7 @@ from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 from sklearn.neighbors import KNeighborsClassifier, NearestCentroid
 from sklearn.neural_network import MLPClassifier
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.model_selection import cross_val_score
 from pickle import dump, load
 from pathlib import Path
 import numpy as np
@@ -71,18 +71,20 @@ class Classifier:
             print("Uh oh - classifer name unknown")
 
     def cross_validate(self):
-        scores = cross_val_score(self.clf, self.train_vec, self.train_labels, n_jobs=-1, cv=StratifiedKFold(5, shuffle=True))
+        scores = cross_val_score(self.clf, self.train_vec, self.train_labels, n_jobs=-1, cv=5) #, scoring='neg_mean_absolute_error'
         return ("%0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-    def train(self):
+    def train(self, verbose):
         if Path('models/' + self.method + ".pkl").is_file():
-            print(self.method + ": loading pre-trained model")
+            if verbose:
+                print("- Loading pre-trained model")
             self.clf = load(open('models/' + self.method + ".pkl", "rb"))
         else:
-            print(self.method + ": training new model")
+            if verbose:
+                print("- Training new model")
             self.clf.fit(self.train_vec, self.train_labels)
             dump(self.clf, open('models/' + self.method + ".pkl", "wb"))
 
-    def predict_class(self):
-        self.train()
+    def predict_class(self, verbose):
+        self.train(verbose)
         return int(self.clf.predict(self.test_vec)[0])

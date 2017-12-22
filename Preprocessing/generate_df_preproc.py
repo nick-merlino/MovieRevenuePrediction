@@ -5,10 +5,12 @@ from pickle import dump
 from process_text import process, extract_key_phrases
 from sklearn.feature_extraction.text import TfidfVectorizer
 import json
-
+import locale
+import sys
 # USER DEFINED
 num_output_classes = 5
 len_n_grams = 5
+locale.setlocale( locale.LC_ALL, '' )
 
 print("Reading in movie data")
 
@@ -53,8 +55,8 @@ dump(train_labels, open("train_labels.pkl", "wb"))
 
 # Save revenue class labels
 train_classes_dict = dict()
-for i in range(1, num_output_classes+1):
-    train_classes_dict[i] = train_classes[i-1]
+for i in range(num_output_classes):
+    train_classes_dict[i+1] = str(locale.currency(train_classes[i], grouping=True) + ' - ' + locale.currency(train_classes[i+1], grouping=True))
 dump(train_classes_dict, open("train_classes_dict.pkl", "wb"))
 
 # Drop memory no longer needed
@@ -69,7 +71,7 @@ del movie_metadata
 del plot_headers
 del plot_summaries
 del train_labels
-# del revenue_bins
+del train_classes
 
 print("Calculating and vectorizing keywords")
 vectorizer = TfidfVectorizer(strip_accents='unicode', decode_error='ignore', tokenizer=extract_key_phrases)
